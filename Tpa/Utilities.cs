@@ -6,7 +6,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@ namespace Tpa {
 
 	internal static class Utilities {
 
-		public enum ColorCode : byte {
+		public enum ColorCodeType : byte {
 			Black = 48,
 			DarkBlue = 49,
 			DarkGreen = 50,
@@ -44,25 +44,31 @@ namespace Tpa {
 			White = 70
 		}
 
-		public static string ToString(this ColorCode colorCode,
-									  bool? insertAmpersandOrPercentOrNeither) {
+		public enum ColorCodeIndicatorType {
+			None,
+			Ampersand,
+			Percent
+		}
+
+		public static string ToString(this ColorCodeType colorCodeType,
+									  ColorCodeIndicatorType colorCodeIndicatorType) {
 			string colorCodeText =
 				Encoding.GetEncoding(437).GetString(new byte[] {
-				((byte)colorCode)
+				((byte)colorCodeType)
 			});
 
-			switch(insertAmpersandOrPercentOrNeither) {
-				case null:
+			switch(colorCodeIndicatorType) {
+				case ColorCodeIndicatorType.None:
 					return colorCodeText;
 
-				case true:
+				case ColorCodeIndicatorType.Ampersand:
 					return "&" + colorCodeText;
 
-				case false:
+				case ColorCodeIndicatorType.Percent:
 					return "%" + colorCodeText;
 
 				default:
-					goto case null;
+					goto case ColorCodeIndicatorType.None;
 			}
 		}
 
@@ -75,8 +81,8 @@ namespace Tpa {
 
 				if(startColorCodeCharacter == '&' ||
 				   startColorCodeCharacter == '%') {
-					byte startColorCode = ((byte)ColorCode.Black);
-					byte endColorCode = ((byte)ColorCode.Blue);
+					byte startColorCode = ((byte)ColorCodeType.Black);
+					byte endColorCode = ((byte)ColorCodeType.Blue);
 
 					bool colorCodeRangeOneDone = false;
 
@@ -84,12 +90,12 @@ namespace Tpa {
 						colorCodesIndexer <= endColorCode;
 						colorCodesIndexer++) {
 						if(endColorCodeCharacter ==
-						   ((ColorCode)colorCodesIndexer).ToString(((bool?)null))[0]) {
+						   ((ColorCodeType)colorCodesIndexer).ToString(ColorCodeIndicatorType.None)[0]) {
 							return true;
 						} else if(colorCodesIndexer == endColorCode &&
 								  !colorCodeRangeOneDone) {
-							startColorCode = ((byte)ColorCode.Green);
-							endColorCode = ((byte)ColorCode.White);
+							startColorCode = ((byte)ColorCodeType.Green);
+							endColorCode = ((byte)ColorCodeType.White);
 
 							colorCodesIndexer = --startColorCode;
 
@@ -113,8 +119,8 @@ namespace Tpa {
 
 		public static readonly string Symbols = "~`!@#$^*()_-+={[}]|\\:;\"'<,>.?/";
 
-		public static string ColorCodeBeforeSymbolsAndAfter(string input, ColorCode beforeColorCode,
-															ColorCode afterColorCode) {
+		public static string ColorCodeBeforeSymbolsAndAfter(string input, ColorCodeType beforeColorCodeType,
+															ColorCodeType afterColorCodeType) {
 			bool escaping = false;
 			bool wasEscaping = false;
 			bool symbolStreak = false;
@@ -134,7 +140,9 @@ namespace Tpa {
 						continue;
 					}
 
-					input = input.Insert(inputIndexer + 1, afterColorCode.ToString(true));
+					input =
+						input.Insert(inputIndexer + 1,
+									 afterColorCodeType.ToString(ColorCodeIndicatorType.Ampersand));
 
 					inputIndexer += 2;
 
@@ -145,7 +153,9 @@ namespace Tpa {
 
 					symbolStreak = false;
 				} else if(Symbols.Contains(inputCharacter.ToString()) && !symbolStreak) {
-					input = input.Insert(inputIndexer, beforeColorCode.ToString(true));
+					input =
+						input.Insert(inputIndexer,
+									 beforeColorCodeType.ToString(ColorCodeIndicatorType.Ampersand));
 
 					inputIndexer += 2;
 
@@ -155,7 +165,9 @@ namespace Tpa {
 							 Char.IsNumber(inputCharacter)) && symbolStreak) ||
 						  (inputIndexer > 0 && input[inputIndexer - 1] == '\n')) {
 					if(inputIndexer != input.Length - 1) {
-						input = input.Insert(inputIndexer, afterColorCode.ToString(true));
+						input =
+							input.Insert(inputIndexer,
+										 afterColorCodeType.ToString(ColorCodeIndicatorType.Ampersand));
 					}
 
 					inputIndexer += 2;
@@ -167,14 +179,19 @@ namespace Tpa {
 			input = input.Replace(SymbolEscapeCharacter.ToString(), "");
 
 			if(!IsColorCode(input.TrimStart())) {
-				input = input.Insert(0, afterColorCode.ToString(true));
+				input =
+					input.Insert(0,
+								 afterColorCodeType.ToString(ColorCodeIndicatorType.Ampersand));
 			}
 
 			return input;
 		}
 
 		public static void TpaPluginMessage(this Player player, string message) {
-			player.Message(Init.StylizedNameAndVersionWithBrackets + " " + ColorCodeBeforeSymbolsAndAfter(message, ColorCode.DarkGray, ColorCode.Yellow));
+			player.Message(Init.StylizedNameAndVersionWithBrackets + " " +
+						   ColorCodeBeforeSymbolsAndAfter(message,
+														  ColorCodeType.DarkGray,
+														  ColorCodeType.Yellow));
 		}
 	}
 }
