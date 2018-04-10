@@ -381,7 +381,7 @@ namespace Tpa {
 		}
 
 		// Copyright 2009-2012 Matvei Stefarov <me@matvei.org>
-		// Original code by Matvei Stefarov edited by video_error.
+		// Original code written by Matvei Stefarov and edited by video_error.
 		private Tuple<bool, TeleportErrorReasonType> TryPlayerTeleportation(Player player, Player targetPlayer) {
 			try {
 				if(player == null || targetPlayer == null) {

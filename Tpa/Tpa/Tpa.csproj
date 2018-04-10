@@ -44,9 +44,8 @@
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="fCraft">
+    <Reference Include="fCraft, Version=0.6.1.7, Culture=neutral, PublicKeyToken=null">
       <HintPath>fCraft.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
   </ItemGroup>

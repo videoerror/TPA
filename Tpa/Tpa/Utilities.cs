@@ -50,10 +50,12 @@ namespace Tpa {
 			Percent
 		}
 
+		public const int CodePage437 = 437;
+
 		public static string ToString(this ColorCodeType colorCodeType,
 									  ColorCodeIndicatorType colorCodeIndicatorType) {
 			string colorCodeText =
-				Encoding.GetEncoding(437).GetString(new byte[] {
+				Encoding.GetEncoding(CodePage437).GetString(new byte[] {
 				((byte)colorCodeType)
 			});
 
@@ -71,40 +73,29 @@ namespace Tpa {
 					goto case ColorCodeIndicatorType.None;
 			}
 		}
-
-		private static bool IsColorCode(string colorCodeText) {
+		
+		/* Original code written by
+		   UnknownShadow200(https://gist.github.com/videoerror/c456ff9762a6b083133804f4e03cc443) and
+		   edited by video_error. */
+		public static bool IsColorCode(string input) {
 			try {
-				colorCodeText = colorCodeText.Trim();
-
-				char startColorCodeCharacter = colorCodeText[0];
-				char endColorCodeCharacter = colorCodeText[1];
-
-				if(startColorCodeCharacter == '&' ||
-				   startColorCodeCharacter == '%') {
-					byte startColorCode = ((byte)ColorCodeType.Black);
-					byte endColorCode = ((byte)ColorCodeType.Blue);
-
-					bool colorCodeRangeOneDone = false;
-
-					for(byte colorCodesIndexer = startColorCode;
-						colorCodesIndexer <= endColorCode;
-						colorCodesIndexer++) {
-						if(endColorCodeCharacter ==
-						   ((ColorCodeType)colorCodesIndexer).ToString(ColorCodeIndicatorType.None)[0]) {
-							return true;
-						} else if(colorCodesIndexer == endColorCode &&
-								  !colorCodeRangeOneDone) {
-							startColorCode = ((byte)ColorCodeType.Green);
-							endColorCode = ((byte)ColorCodeType.White);
-
-							colorCodesIndexer = --startColorCode;
-
-							colorCodeRangeOneDone = true;
-						}
-					}
+				input = input.Trim();
+				
+				char colorCodeIndicator = input[0];
+				
+				if((!(colorCodeIndicator == '&' ||
+				      colorCodeIndicator == '%')) ||
+				   input.Length < 2 ||
+				   String.IsNullOrEmpty(input)) {
+					return false;
 				}
 
-				return false;
+				char colorCode = input[1];
+				
+				return (colorCode >= ((char)ColorCodeType.Black) &&
+				        colorCode <= ((char)ColorCodeType.Blue)) ||
+				       (colorCode >= ((char)ColorCodeType.Green) &&
+				        colorCode <= ((char)ColorCodeType.White));
 			} catch {
 				return false;
 			}
